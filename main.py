@@ -5,7 +5,6 @@ log.basicConfig(
 )  # noqa
 
 import sys
-
 from jiant.__main__ import main
 
 # Global notification handler, can be accessed outside main() during exception handling.

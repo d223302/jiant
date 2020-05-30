@@ -4,7 +4,7 @@ from typing import Dict
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from allennlp.modules.span_extractors import EndpointSpanExtractor, SelfAttentiveSpanExtractor
+from allennlp.modules.span_extractors import EndpointSpanExtractor, SelfAttentiveSpanExtractor, MeanPoolingSpanExtractor
 
 from jiant.tasks.edge_probing import EdgeProbingTask
 from jiant.modules.simple_modules import Classifier
@@ -34,10 +34,12 @@ class EdgeClassifierModule(nn.Module):
     """
 
     def _make_span_extractor(self):
-        if self.span_pooling == "attn":
-            return SelfAttentiveSpanExtractor(self.proj_dim)
+        if True:
+            return MeanPoolingSpanExtractor(self.input_dim)
+        #if self.span_pooling == "attn":
+        #    return SelfAttentiveSpanExtractor(self.input_dim)
         else:
-            return EndpointSpanExtractor(self.proj_dim, combination=self.span_pooling)
+            return EndpointSpanExtractor(self.input_dim, combination=self.span_pooling)
 
     def _make_cnn_layer(self, d_inp):
         """Make a CNN layer as a projection of local context.
@@ -66,23 +68,27 @@ class EdgeClassifierModule(nn.Module):
         self.cnn_context = task_params["edgeprobe_cnn_context"]
         self.is_symmetric = task_params["edgeprobe_symmetric"]
         self.single_sided = task.single_sided
+        self.input_dim = d_inp
 
-        self.proj_dim = task_params["d_hid"]
+        #self.proj_dim = task_params["d_hid"]
         # Separate projection for span1, span2.
         # Convolution allows using local context outside the span, with
         # cnn_context = 0 behaving as a per-word linear layer.
         # Use these to reduce dimensionality in case we're enumerating a lot of
         # spans - we want to do this *before* extracting spans for greatest
         # efficiency.
+        # TODO: remove projection layer
+        """
         self.proj1 = self._make_cnn_layer(d_inp)
         if self.is_symmetric or self.single_sided:
             # Use None as dummy padding for readability,
             # so that we can index projs[1] and projs[2]
-            self.projs = nn.ModuleList([None, self.proj1, self.proj1])
+            #self.projs = nn.ModuleList([None, self.proj1, self.proj1])
         else:
             # Separate params for span2
-            self.proj2 = self._make_cnn_layer(d_inp)
-            self.projs = nn.ModuleList([None, self.proj1, self.proj2])
+            #self.proj2 = self._make_cnn_layer(d_inp)
+            #self.projs = nn.ModuleList([None, self.proj1, self.proj2])
+        """    
 
         # Span extractor, shared for both span1 and span2.
         self.span_extractor1 = self._make_span_extractor()
@@ -130,11 +136,11 @@ class EdgeClassifierModule(nn.Module):
         out = {}
 
         # Apply projection CNN layer for each span.
-        word_embs_in_context_t = word_embs_in_context.transpose(1, 2)  # needed for CNN layer
+        #word_embs_in_context_t = word_embs_in_context.transpose(1, 2)  # needed for CNN layer
 
-        se_proj1 = self.projs[1](word_embs_in_context_t).transpose(2, 1).contiguous()
-        if not self.single_sided:
-            se_proj2 = self.projs[2](word_embs_in_context_t).transpose(2, 1).contiguous()
+        #se_proj1 = self.projs[1](word_embs_in_context_t).transpose(2, 1).contiguous()
+        #if not self.single_sided:
+        #    se_proj2 = self.projs[2](word_embs_in_context_t).transpose(2, 1).contiguous()
 
         # Span extraction.
         # [batch_size, num_targets] bool
@@ -146,9 +152,9 @@ class EdgeClassifierModule(nn.Module):
 
         _kw = dict(sequence_mask=sent_mask.long(), span_indices_mask=span_mask.long())
         # span1_emb and span2_emb are [batch_size, num_targets, span_repr_dim]
-        span1_emb = self.span_extractors[1](se_proj1, batch["span1s"], **_kw)
+        span1_emb = self.span_extractors[1](word_embs_in_context, batch["span1s"], **_kw)
         if not self.single_sided:
-            span2_emb = self.span_extractors[2](se_proj2, batch["span2s"], **_kw)
+            span2_emb = self.span_extractors[2](word_embs_in_context, batch["span2s"], **_kw)
             span_emb = torch.cat([span1_emb, span2_emb], dim=2)
         else:
             span_emb = span1_emb

@@ -51,9 +51,10 @@ class Classifier(nn.Module):
 
     # NOTE: Expects dropout to have already been applied to its input.
 
-    def __init__(self, d_inp, n_classes, cls_type="mlp", dropout=0.2, d_hid=512):
+    def __init__(self, d_inp, n_classes, cls_type="log_reg", dropout=0.2, d_hid=512):
         super(Classifier, self).__init__()
-        if cls_type == "log_reg":
+        ## TODO: change this to cfg file
+        if True:#cls_type == "log_reg":
             classifier = nn.Linear(d_inp, n_classes)
         elif cls_type == "mlp":
             classifier = nn.Sequential(

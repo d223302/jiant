@@ -21,7 +21,7 @@ from Levenshtein.StringMatcher import StringMatcher
 
 from jiant.utils.tokenizers import get_tokenizer, Tokenizer
 from jiant.utils.utils import unescape_moses, transpose_list_of_lists
-
+from transformers import AlbertTokenizer
 
 # Tokenizer instance for internal use.
 _SIMPLE_TOKENIZER = SpaceTokenizer()
@@ -391,6 +391,11 @@ def get_aligner_fn(tokenizer_name: Text):
     """
     if tokenizer_name == "MosesTokenizer" or tokenizer_name.startswith("transfo-xl-"):
         return align_moses
+    elif tokenizer_name.startswith("albert"):
+        wpm_tokenizer = AlbertTokenizer(vocab_file = '/work/dcml0714/albert/albert_base/30k-clean.model')
+        return functools.partial(
+            align_wpm, wpm_tokenizer=wpm_tokenizer,do_lower_case = True
+        )
     elif tokenizer_name.startswith("bert-"):
         do_lower_case = tokenizer_name.endswith("uncased")
         wpm_tokenizer = get_tokenizer(tokenizer_name)

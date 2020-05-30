@@ -681,8 +681,8 @@ def add_transformers_vocab(vocab, tokenizer_name):
         tokenizer = BertTokenizer.from_pretrained(tokenizer_name, do_lower_case=do_lower_case)
     elif tokenizer_name.startswith("roberta-"):
         tokenizer = RobertaTokenizer.from_pretrained(tokenizer_name)
-    elif tokenizer_name.startswith("albert-"):
-        tokenizer = AlbertTokenizer.from_pretrained(tokenizer_name)
+    elif tokenizer_name.startswith("albert"):
+        tokenizer = AlbertTokenizer(vocab_file = "/work/dcml0714/albert/albert_base/30k-clean.model")
     elif tokenizer_name.startswith("xlnet-"):
         tokenizer = XLNetTokenizer.from_pretrained(tokenizer_name, do_lower_case=do_lower_case)
     elif tokenizer_name.startswith("openai-gpt"):

@@ -11,17 +11,9 @@ from sacremoses import MosesDetokenizer
 from sacremoses import MosesTokenizer as SacreMosesTokenizer
 from nltk.tokenize.simple import SpaceTokenizer
 from jiant.huggingface_transformers_interface import input_module_uses_transformers
-from transformers import (
-    BertTokenizer,
-    RobertaTokenizer,
-    AlbertTokenizer,
-    XLNetTokenizer,
-    OpenAIGPTTokenizer,
-    GPT2Tokenizer,
-    TransfoXLTokenizer,
-    XLMTokenizer,
-)
-
+import sys
+print(sys.path)
+from transformers import BertTokenizer
 
 class Tokenizer(object):
     def tokenize(self, sentence):
@@ -95,7 +87,7 @@ def get_tokenizer(tokenizer_name):
     log.info(f"\tLoading Tokenizer {tokenizer_name}")
     if tokenizer_name.startswith("bert-"):
         do_lower_case = tokenizer_name.endswith("uncased")
-        tokenizer = BertTokenizer.from_pretrained(tokenizer_name, do_lower_case=do_lower_case)
+        tokenizer = BertTokenizer(vocab_file = "/work/dcml0714/bert_data/en_pretrain/vocab.txt", do_lower_case = True)
     elif tokenizer_name.startswith("roberta-"):
         tokenizer = RobertaTokenizer.from_pretrained(tokenizer_name)
     elif tokenizer_name.startswith("albert-"):

@@ -37,6 +37,7 @@ transformer_input_module_to_tokenizer_name = {
     "gpt2-xl": "gpt2",
     "transfo-xl-wt103": "transfo_xl",
     "xlm-mlm-en-2048": "xlm_en",
+    "albert": "albert",
     "albert-base-v1": "albert",
     "albert-large-v1": "albert",
     "albert-xlarge-v1": "albert",

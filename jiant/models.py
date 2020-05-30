@@ -242,13 +242,14 @@ def build_model(args, vocab, pretrained_embs, tasks, cuda_devices):
         log.info(f"Using BERT model ({args.input_module}).")
         embedder = BertEmbedderModule(args)
         d_emb = embedder.get_output_dim()
+        
     elif args.input_module.startswith("roberta-"):
         from jiant.huggingface_transformers_interface.modules import RobertaEmbedderModule
 
         log.info(f"Using RoBERTa model ({args.input_module}).")
         embedder = RobertaEmbedderModule(args)
         d_emb = embedder.get_output_dim()
-    elif args.input_module.startswith("albert-"):
+    elif args.input_module.startswith("albert"):
         from jiant.huggingface_transformers_interface.modules import AlbertEmbedderModule
 
         log.info(f"Using ALBERT model ({args.input_module}).")

@@ -29,7 +29,7 @@ function run_exp() {
     if [ ! -z $NOTIFY_EMAIL ]; then
         args+=( --notify "$NOTIFY_EMAIL" )
     fi
-    python main.py "${args[@]}"
+    python -W ignore main.py "${args[@]}"
 }
 
 function elmo_chars_exp() {
@@ -179,9 +179,9 @@ function bert_lex_exp() {
 function bert_mix_exp() {
     # Run BERT with ELMo-style scalar mixing across layers.
     # Usage: bert_mix_exp <task_name> <bert_model_name>
-    OVERRIDES="exp_name=bert-${2}-mix-${1}, run_name=run"
+    OVERRIDES="exp_name=${2}-mix-${1}, run_name=run"
     OVERRIDES+=", target_tasks=$1"
-    OVERRIDES+=", input_module=bert-$2"
+    OVERRIDES+=", input_module=$2"
     OVERRIDES+=", transformers_output_mode=mix"
     run_exp "jiant/config/edgeprobe/edgeprobe_bert.conf" "${OVERRIDES}"
 }
@@ -201,11 +201,26 @@ function bert_mix_k_exp() {
 
 function bert_at_k_exp() {
     # Run BERT and probe layer K.
-    # Usage: bert_at_k_exp <task_name> <bert_model_name> <k>
-    OVERRIDES="exp_name=bert-${2}-at_${3}-${1}, run_name=run"
+    # Usage: bert_at_k_exp <task_name> <bert_model_name> <k> <bert_model_path> <max_epochs> <screen_id>
+    OVERRIDES="exp_name=${2}-at_${3}-${1}-${6}, run_name=run"
     OVERRIDES+=", target_tasks=$1"
-    OVERRIDES+=", input_module=bert-$2"
+    OVERRIDES+=", input_module=$2"
     OVERRIDES+=", transformers_output_mode=top"
     OVERRIDES+=", transformers_max_layer=${3}"
+    OVERRIDES+=", bert_model_path=${4}"
+    OVERRIDES+=", max_epochs=${5}"
     run_exp "jiant/config/edgeprobe/edgeprobe_bert.conf" "${OVERRIDES}"
+}
+
+function albert_at_k_exp() {
+    # Run ALBERT and probe layer K.
+    # Usage: albert_at_k_exp <task_name> <bert_model_name> <k> <albert_model_path> <max_epochs> <screen_id>
+    OVERRIDES="exp_name=${2}-at_${3}-${1}-${6}, run_name=run"
+    OVERRIDES+=", target_tasks=$1"
+    OVERRIDES+=", input_module=$2"
+    OVERRIDES+=", transformers_output_mode=top"
+    OVERRIDES+=", transformers_max_layer=${3}"
+    OVERRIDES+=", albert_model_path=${4}"
+    OVERRIDES+=", max_epochs=${5}"
+    run_exp "jiant/config/edgeprobe/edgeprobe_albert.conf" "${OVERRIDES}"
 }

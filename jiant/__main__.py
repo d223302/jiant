@@ -331,7 +331,7 @@ def evaluate_and_write(args, model, tasks, splits_to_write, cuda_device):
             tasks, val_preds, args.run_dir, "val", strict_glue_format=args.write_strict_glue_format
         )
     if "test" in splits_to_write:
-        _, te_preds = evaluate.evaluate(model, tasks, args.batch_size, cuda_device, "test")
+        test_results, te_preds = evaluate.evaluate(model, tasks, args.batch_size, cuda_device, "test")
         evaluate.write_preds(
             tasks, te_preds, args.run_dir, "test", strict_glue_format=args.write_strict_glue_format
         )
@@ -339,7 +339,8 @@ def evaluate_and_write(args, model, tasks, splits_to_write, cuda_device):
     run_name = args.get("run_name", os.path.basename(args.run_dir))
     results_tsv = os.path.join(args.exp_dir, "results.tsv")
     log.info("Writing results for split 'val' to %s", results_tsv)
-    evaluate.write_results(val_results, results_tsv, run_name=run_name)
+    #evaluate.write_results(val_results, results_tsv, run_name=run_name)
+    evaluate.write_results(test_results, results_tsv, run_name=run_name)
 
 
 def initial_setup(args: config.Params, cl_args: argparse.Namespace) -> (config.Params, int):
@@ -380,7 +381,7 @@ def initial_setup(args: config.Params, cl_args: argparse.Namespace) -> (config.P
     log_fh.setFormatter(log_fmt)
     log.getLogger().addHandler(log_fh)
 
-    if cl_args.remote_log:
+    if False: #cl_args.remote_log:
         from jiant.utils import gcp
 
         gcp.configure_remote_logging(args.remote_log_name)

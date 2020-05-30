@@ -257,15 +257,14 @@ class BertEmbedderModule(HuggingfaceTransformersEmbedderModule):
 
     def __init__(self, args):
         super(BertEmbedderModule, self).__init__(args)
-
-        self.model = transformers.BertModel.from_pretrained(
-            args.input_module, cache_dir=self.cache_dir, output_hidden_states=True
-        )
+        config = transformers.BertConfig.from_json_file('/work/dcml0714/bert_data/en_pretrain/bert_config.json')
+        config.output_hidden_states = True
+        self.model = transformers.BertForPreTraining.from_pretrained(pretrained_model_name_or_path = None,
+                                                            config = config,
+                                                            state_dict = torch.load(args.bert_model_path))
         self.max_pos = self.model.config.max_position_embeddings
 
-        self.tokenizer = transformers.BertTokenizer.from_pretrained(
-            args.input_module, cache_dir=self.cache_dir, do_lower_case="uncased" in args.tokenizer
-        )  # TODO: Speed things up slightly by reusing the previously-loaded tokenizer.
+        self.tokenizer = transformers.BertTokenizer(vocab_file = '/work/dcml0714/bert_data/bi_pretrain/vocab.txt')
         self._sep_id = self.tokenizer.convert_tokens_to_ids("[SEP]")
         self._cls_id = self.tokenizer.convert_tokens_to_ids("[CLS]")
         self._pad_id = self.tokenizer.convert_tokens_to_ids("[PAD]")
@@ -294,7 +293,7 @@ class BertEmbedderModule(HuggingfaceTransformersEmbedderModule):
             lex_seq = self.model.embeddings.LayerNorm(lex_seq)
         if self.output_mode != "only":
             token_types = self.get_seg_ids(ids, input_mask)
-            _, output_pooled_vec, hidden_states = self.model(
+            _, _, hidden_states = self.model(
                 ids, token_type_ids=token_types, attention_mask=input_mask
             )
         return self.prepare_output(lex_seq, hidden_states, input_mask)
@@ -368,15 +367,16 @@ class AlbertEmbedderModule(HuggingfaceTransformersEmbedderModule):
 
     def __init__(self, args):
         super(AlbertEmbedderModule, self).__init__(args)
-
-        self.model = transformers.AlbertModel.from_pretrained(
-            args.input_module, cache_dir=self.cache_dir, output_hidden_states=True
-        )
+        #self.model = transformers.AlbertModel.from_pretrained("albert-base-v1", output_hidden_states = True)
+        #"""
+        self.model = transformers.AlbertModel.from_pretrained(pretrained_model_name_or_path = None,
+                                                            config = "/work/dcml0714/albert/albert_base/albert_config.json",
+                                                            state_dict = torch.load(args.albert_model_path),
+                                                            output_hidden_states = True)
+        #"""                                                    
         self.max_pos = self.model.config.max_position_embeddings
 
-        self.tokenizer = transformers.AlbertTokenizer.from_pretrained(
-            args.input_module, cache_dir=self.cache_dir
-        )  # TODO: Speed things up slightly by reusing the previously-loaded tokenizer.
+        self.tokenizer = transformers.AlbertTokenizer(vocab_file = "/work/dcml0714/albert/albert_base/30k-clean.model")
         self._sep_id = self.tokenizer.convert_tokens_to_ids("[SEP]")
         self._cls_id = self.tokenizer.convert_tokens_to_ids("[CLS]")
         self._pad_id = self.tokenizer.convert_tokens_to_ids("<pad>")
